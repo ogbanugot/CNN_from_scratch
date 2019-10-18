@@ -1,0 +1,46 @@
+﻿<Properties StartupConfiguration="{FE80D304-FEFF-435D-B933-BE50DB6328CF}|Default">
+  <MonoDevelop.Ide.ItemProperties.CNN PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="CNN/Core/Model.cs">
+    <Files>
+      <File FileName="CNN/Core/Model.cs" Line="92" Column="72" />
+      <File FileName="CNN/Core/Layer.cs" Line="33" Column="1" />
+      <File FileName="CNN/Core/Filter.cs" Line="141" Column="1" />
+      <File FileName="CNN/Core/fMap.cs" Line="167" Column="1" />
+      <File FileName="CNN/Program.cs" Line="21" Column="29" />
+      <File FileName="CNN/Core/Image.cs" Line="16" Column="35" />
+      <File FileName="NN/Core/Model.cs" Line="1" Column="1" />
+      <File FileName="NN/Nodes/Neuron.cs" Line="1" Column="1" />
+      <File FileName="CNN/Core/Matrix.cs" Line="51" Column="1" />
+      <File FileName="CNN/Core/ILayer.cs" Line="15" Column="1" />
+      <File FileName="CNN/Core/Actfunc.cs" Line="31" Column="14" />
+      <File FileName="CNN/Core/Loss.cs" Line="14" Column="25" />
+    </Files>
+    <Pads>
+      <Pad Id="ProjectPad">
+        <State name="__root__">
+          <Node name="vSLAM" expanded="True">
+            <Node name="CNN" expanded="True">
+              <Node name="Core" expanded="True">
+                <Node name="Filters" expanded="True" />
+                <Node name="Model.cs" selected="True" />
+              </Node>
+            </Node>
+            <Node name="NN" expanded="True">
+              <Node name="Core" expanded="True" />
+              <Node name="Nodes" expanded="True" />
+            </Node>
+          </Node>
+        </State>
+      </Pad>
+    </Pads>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore>
+      <Breakpoint file="/home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/Core/Model.cs" relfile="CNN/Core/Model.cs" line="25" column="13" />
+      <Breakpoint file="/home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/Core/Model.cs" relfile="CNN/Core/Model.cs" line="105" column="1" />
+    </BreakpointStore>
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>
