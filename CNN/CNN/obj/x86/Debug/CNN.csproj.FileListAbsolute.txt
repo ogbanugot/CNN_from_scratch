@@ -1,3 +1,15 @@
+C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.exe
+C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.pdb
+C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.csprojAssemblyReference.cache
+C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CoreCompileInputs.cache
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/CNN.exe.config
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/CNN.exe
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/CNN.pdb
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/NN.exe
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/NN.pdb
+C:/Users/Ugot/Documents/vSLAM/CNN/bin/Debug/NN.exe.config
+C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CopyComplete
+/home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/bin/Debug/CNN.exe.config
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/bin/Debug/CNN.exe
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/bin/Debug/CNN.pdb
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/bin/Debug/NN.exe
@@ -7,3 +19,13 @@
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CopyComplete
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.exe
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.pdb
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/CNN.exe.config
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/CNN.exe
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/CNN.pdb
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/NN.exe
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/NN.pdb
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csprojAssemblyReference.cache
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CoreCompileInputs.cache
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CopyComplete
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.exe
+/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.pdb

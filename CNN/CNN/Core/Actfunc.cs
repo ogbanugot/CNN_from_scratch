@@ -10,10 +10,23 @@ namespace CNN.Core
     {
         public double ReLu(double x)
         {
-            if (x > 0)
+            if (x >= 0)
                 return x;
             else
                 return 0;
+        }
+
+        public double DReLuConn(double x)
+        {
+            if (x >= 0)
+                return 1;
+            else
+                return 0;
+        }
+
+        public fMap DReLuConv(fMap dconv)
+        {
+            throw new NotImplementedException();
         }
 
         public List<double> Softmax(List<double> output)

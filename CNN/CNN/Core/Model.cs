@@ -14,6 +14,7 @@ namespace CNN.Core
 
         public Model Configure(string configStr, ILayer input)
         {
+            Console.WriteLine("Configuring model....");
             string[] cfg = configStr.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
 
             int n = cfg.Length + 1;
@@ -23,6 +24,8 @@ namespace CNN.Core
             for (int i = 0; i < n - 1; i++)
                 cnn[i + 1] = new Layer().Configure(cfg[i], cnn[i]);
             //comment
+            Console.WriteLine("Configuration complete.");
+
             return this;
         }
 
@@ -41,7 +44,6 @@ namespace CNN.Core
                     for(int l=0; l< cnn[i].Connections.Count; l++)
                     {
                         no++;
-                        //Console.WriteLine(no);
                         double sum = 0;
                         for (int m = 0; m < cnn[i].Connections.Count; m++)
                         {
@@ -50,32 +52,31 @@ namespace CNN.Core
                             sum += val;
                         }            
                         Actfunc actfunc = new Actfunc();
+                        double induced_field = sum + cnn[i].fMaps[l].Bias[0];
+                        cnn[i].fMaps[l].InducedField[0][0] = induced_field;
                         double relu_output;
                         switch (cnn[i].Connections[0][0].Activation)
                         {
                             case "relu":
-                                relu_output = actfunc.ReLu(sum + cnn[i].fMaps[l].Bias);
+                                relu_output = actfunc.ReLu(induced_field);
                                 cnn[i].fMaps[l].value[0][0].Value = relu_output;
-                                Console.WriteLine(cnn[i].fMaps[l].value[0][0].Value);
-                                Console.WriteLine(no);
+                                
                                 break;                      
                         }
                     }
                     if (cnn[i].filters[0].Activation == "softmax")
                     {
                         List<double> output = new List<double>();
-                        Console.WriteLine("output layer");
                         for (int s=0; s<cnn[i].fMaps.Count; s++)
                         {
-                            output.Add(cnn[i].fMaps[s].value[0][0].Value);
-                            Console.WriteLine(cnn[i].fMaps[s].value[0][0].Value);
+                            output.Add(cnn[i].fMaps[s].InducedField[0][0]);
                         }
                         Actfunc actfunc = new Actfunc();
+                      
                         var probabilites =  actfunc.Softmax(output);
                         for (int s = 0; s < cnn[i].fMaps.Count; s++)
                         {
                             cnn[i].fMaps[s].value[0][0].Value = probabilites[s];
-                            Console.WriteLine(probabilites[s]);
                         }
                     }
                 }
@@ -119,9 +120,11 @@ namespace CNN.Core
                 }
 
             }
-            Console.WriteLine(cnn[4].fMaps[0].value[0][0].Value);
-            Console.WriteLine(cnn[4].fMaps[1].value[0][0].Value);
-            Console.WriteLine(cnn[4].fMaps[2].value[0][0].Value);
+            //Console.WriteLine("\n");
+            //Console.WriteLine(cnn[4].fMaps[0].InducedField[0][0]);
+            //Console.WriteLine(cnn[4].fMaps[1].InducedField[0][0]);
+            //Console.WriteLine(cnn[4].fMaps[2].InducedField[0][0]);
+            //Console.WriteLine("\n");
             Console.WriteLine("Output layer");
             Console.WriteLine(cnn[5].fMaps[0].value[0][0].Value);
             Console.WriteLine(cnn[5].fMaps[1].value[0][0].Value);
@@ -133,17 +136,145 @@ namespace CNN.Core
             Console.WriteLine(cnn[5].fMaps[7].value[0][0].Value);
             Console.WriteLine(cnn[5].fMaps[8].value[0][0].Value);
             Console.WriteLine(cnn[5].fMaps[9].value[0][0].Value);
-
-
+            Console.WriteLine("\n\n");
 
             return this;
         }
 
-        public Model backward(int parameters)
+        public Model Backward(double []label)
         {
-            //backward propagation
-            //calculate gradients
-            //returns gradients
+            Console.WriteLine("\n\n");
+            Console.WriteLine("backprop");
+            int n = cnn.Length;
+            for (int i = n-1; i >= 1; i--)
+            {
+                int size = cnn[i].filters.Count;
+                //int no = 0;
+                //output layer
+                if (i==n-1 && cnn[i].filters[0].GetType() == typeof(Filters.Connection))
+                {
+                    Console.WriteLine("output layer");
+                    //for each fmap
+                    for (int j=0; j<cnn[i].fMaps.Count; j++)
+                    {
+                        //dout = prob - label
+                        cnn[i].fMaps[j].Gradient[0][0] = cnn[i].fMaps[j].value[0][0].Value - label[j];
+                        //bias = dout
+                        cnn[i].fMaps[j].Bias[1] = cnn[i].fMaps[j].Gradient[0][0];
+                    }
+                    //derivative of weights
+                    //for all connections
+                    for (int h=0; h<cnn[i].Connections.Count; h++)
+                    {
+                        //for each weight in connection
+                        for(int m=0; m<cnn[i].Connections[0].Count; m++)
+                        {
+                            //dw = previous_layer_output * gradient__of_current_layer_output
+                            cnn[i].Connections[h][m].Gradient[0][0] = cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+                        }
+                    }
+
+                }
+
+                if((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Connection)))
+                {
+                    Console.WriteLine("hidden layer");
+                    //hidden layer
+                    Actfunc actfunc = new Actfunc();
+                    double function_derivative = 0;
+                    double sum = 0;
+
+                    //for each fmap in hidden layer
+                    for (int j=0; j<cnn[i].fMaps.Count; j++)
+                    {
+                        switch (cnn[i].filters[i].Activation)
+                        {
+                            case "relu":
+                                function_derivative = actfunc.DReLuConn(cnn[i].fMaps[i].InducedField[0][0]);
+                                break;
+                        }
+                        //for each fmap in proceeding layer
+                        for (int h=0; h<cnn[i+1].fMaps.Count; h++)
+                        {
+                            //for each fmap and its corresponding weight
+                            sum += (cnn[i + 1].Connections[h][j].value[0][0].Value) * (cnn[i + 1].fMaps[h].Gradient[0][0]);
+                        }
+                        cnn[i].fMaps[j].Gradient[0][0] = sum * function_derivative;
+                        //bias
+                        cnn[i].fMaps[j].Bias[1] = cnn[i].fMaps[j].Gradient[0][0];
+
+                    }
+
+                    //derivative of weights
+                    //for all connections
+                    for (int h = 0; h < cnn[i].Connections.Count; h++)
+                    {
+                        //for each weight in connection
+                        for (int m = 0; m < cnn[i].Connections[0].Count; m++)
+                        {
+                            //dw = previous_layer_output (source) * gradient__of_current_layer_output
+                            cnn[i].Connections[h][m].Gradient[0][0] = cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+                        }
+                    }
+                }
+
+                if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Maxpool)) && (cnn[i+1].filters[0].GetType() == typeof(Filters.Connection)))
+                {
+                    Console.WriteLine("pool layer");
+                    // derivative of Pooled layer
+                    double sum =0;
+                    int number_of_fmaps = cnn[i].fMaps.Count;
+                    int size_of_fmaps = cnn[i].fMaps[0].value.Length;
+                    int number_of_filters = size_of_fmaps * size_of_fmaps * number_of_fmaps;
+                    double[] pool_gradient = new double[number_of_filters];
+                    for (int j = 0; j < number_of_filters; j++)
+                    {
+                        //for each fmap in proceeding layer
+                        for (int h = 0; h < cnn[i + 1].fMaps.Count; h++)
+                        {
+                            //for each fmap and its corresponding weight
+                            sum += (cnn[i + 1].Connections[h][j].value[0][0].Value) * (cnn[i + 1].fMaps[h].Gradient[0][0]);
+                        }
+                        pool_gradient[j] = sum;
+                    }
+                    int index = 0;
+                    //to assign gradient to pooled maps
+                    for (int l=0; l<number_of_fmaps; l++)
+                    {
+                        for(int m=0; m<size_of_fmaps; m++)
+                        {
+                            for (int p = 0; p < size_of_fmaps; p++)
+                            {
+                                cnn[i].fMaps[l].Gradient[m][p] = pool_gradient[index];
+                                index++;
+                            }
+                        }
+                    }
+                }
+
+                if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Convolution)) && (cnn[i + 1].filters[0].GetType() == typeof(Filters.Maxpool)))
+                {
+                    //maxpool to convolution backprop
+                    Console.WriteLine("convolution layer");
+                    for (int j=0; j<cnn[i].fMaps.Count; j++)
+                    {
+                        cnn[i].filters[j].Maxbackward(cnn[i + 1].fMaps[j], cnn[i+1].filters[i].Stride);
+                    }
+                }
+
+                if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Convolution)) && (cnn[i + 1].filters[0].GetType() == typeof(Filters.Convolution)))
+                {
+                    //convolution to convolution backprop
+                    Console.WriteLine("convolution layer");
+                    for (int j = 0; j < cnn[i+1].fMaps.Count; j++)
+                    {
+                        cnn[i].filters[j].Backward(cnn[i+1].fMaps[j], cnn[i].filters[i].Activation);
+
+                    }
+                }
+
+            }
+
             return this;
         }
 

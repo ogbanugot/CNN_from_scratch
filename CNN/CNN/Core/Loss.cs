@@ -8,10 +8,17 @@ namespace CNN.Core
 {
     class Loss
     {
-        public int[] categoricalCrossEntropy(int probs, int label)
+        public double CategoricalCrossEntropy(List<double> probs, List<double> label)
         {
-            //returns cross entropy loss between probabilites and label
-            return null;
+            if (probs.Count != label.Count)
+                throw new Exception("Size mismatch: Label and probs should be the same ");
+            double sum = 0;
+
+            for (int i = 0; i < probs.Count; i++)
+            {
+                sum += label[i] * Math.Log(probs[i]);
+            }
+            return -sum;
         }
     }
 }

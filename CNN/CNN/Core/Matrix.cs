@@ -40,6 +40,16 @@ namespace CNN.Core
 
     public class Linalg
     {
+        Random rand = new Random(); //reuse this if you are generating many
+
+        public double[][] DoubleConfigure(int rows, int cols)
+        {
+            double[][] matrix = null;
+            matrix = new double[rows][];
+            for (int i = 0; i < rows; i++)
+                matrix[i] = new double[cols];
+            return matrix;
+        }
         public Filter MatrixProduct(Filter matrixA, Filter matrixB)
         {
             int aRows = matrixA.value.Length; int aCols = matrixA.value[0].Length;
@@ -53,6 +63,33 @@ namespace CNN.Core
                 for (int j = 0; j < bCols; ++j) // each col of B
                     for (int k = 0; k < aCols; ++k) // could use k < bRows
                         result.value[i][j].Value += matrixA.value[i][k].Value * matrixB.value[k][j].Value;
+
+            return result;
+        }
+
+        public double[][] ScalarProduct(double scalar, Filter matrix)
+        {
+            int Rows = matrix.value.Length; int Cols = matrix.value[0].Length;
+            double[][] result = DoubleConfigure(Rows, Cols);
+
+            for (int i = 0; i < Rows; ++i) // each row of A
+                for (int j = 0; j < Cols; ++j) // each col of A
+                    result[i][j] = scalar * matrix.value[i][j].Value;
+            return result;
+        }
+
+        public double[][] AddMatrices(double[][] matrixA, double[][] matrixB)
+        {
+            int aRows = matrixA.Length; int aCols = matrixA[0].Length;
+            int bRows = matrixB.Length; int bCols = matrixB[0].Length;
+            if (aCols != bRows)
+                throw new Exception("Non-conformable matrices in Add Matrices");
+
+            double[][] result = DoubleConfigure(aRows, bCols);
+
+            for (int i = 0; i < aRows; ++i) // each row of A
+                for (int j = 0; j < bCols; ++j) // each col of B
+                    result[i][j] = matrixA[i][j] + matrixB[i][j];
 
             return result;
         }
@@ -71,21 +108,59 @@ namespace CNN.Core
             return total;
         }
 
+        public double DoubleSum(double[][] matrix)
+        {
+
+            double total = 0;
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                for (int j = 0; j < matrix[0].Length; j++)
+                {
+                    total += matrix[i][j];
+                }
+            }
+            return total;
+        }
+
         public Node<double> Max(Filter matrix)
         {
             int Rows = matrix.value.Length; int Cols = matrix.value[0].Length;
             Node<double> max = new Node<double>(0);
             for (int i = 0; i < Rows; ++i)
             {
-                for(int j = 0; j < Cols; ++j)
+                for (int j = 0; j < Cols; ++j)
                 {
-                    if(matrix.value[i][j].Value > max.Value)
+                    if (matrix.value[i][j].Value > max.Value)
                     {
                         max = matrix.value[i][j];
                     }
                 }
             }
             return max;
+
+        }
+
+        public int[] NanArgMax(Filter matrix)
+        {
+            int Rows = matrix.value.Length; int Cols = matrix.value[0].Length;
+            int[] indices = new int[2];
+            int a = 0, b = 0;
+            Node<double> max = new Node<double>(0);
+            for (int i = 0; i < Rows; ++i)
+            {
+                for (int j = 0; j < Cols; ++j)
+                {
+                    if (matrix.value[i][j].Value > max.Value)
+                    {
+                        max = matrix.value[i][j];
+                        a = i;
+                        b = j;
+                    }
+                }
+            }
+            indices[0] = a;
+            indices[1] = b;
+            return indices;
 
         }
 
@@ -121,7 +196,6 @@ namespace CNN.Core
 
         public double RandomGaussian(double mean, double stdDev)
         {
-            Random rand = new Random(); //reuse this if you are generating many
             double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
             double u2 = 1.0 - rand.NextDouble();
             double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)

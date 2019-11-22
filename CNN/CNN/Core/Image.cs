@@ -46,8 +46,8 @@ namespace CNN.Core
             get { return fmaps[0]; }
         }
 
-        IList<Filter> ILayer.filters => throw new NotImplementedException();
-        IList<IList<Filter>> ILayer.Connections => throw new NotImplementedException();
+        IList<Filter> ILayer.filters => null;
+        IList<IList<Filter>> ILayer.Connections => null;
 
     }
 }
