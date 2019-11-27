@@ -8,7 +8,7 @@ namespace CNN.Core.Filters
 {
     public class Connection : Filter
     {
-        public Connection(int? id, int size, int stride)
-            : base(id, size, stride) { }
+        public Connection(int? id, int size, int stride, double stdev, double scale)
+            : base(id, size, stride, stdev, scale) { }
     }
 }

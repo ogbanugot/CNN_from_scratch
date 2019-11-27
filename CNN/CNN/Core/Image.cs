@@ -9,6 +9,9 @@ namespace CNN.Core
     public class Image : ILayer
     {
         protected IList<fMap> fmaps = new List<fMap>();
+        protected IList<Filter> filter = new List<Filter>();
+        Filter k;
+
         public Image() { }
 
         public Image(int rows, int cols) 
@@ -25,6 +28,9 @@ namespace CNN.Core
         {
             for (int i = 0; i < 1; i++)
                 fmaps.Add(new fMap(rows, cols));
+
+            k = Filter.Build("image", 1, rows, cols,1,1);
+            filter.Add(k);
             return this;
         }
 
@@ -46,7 +52,11 @@ namespace CNN.Core
             get { return fmaps[0]; }
         }
 
-        IList<Filter> ILayer.filters => null;
+        public IList<Filter> filters
+        {
+            get { return filter; }
+        }
+
         IList<IList<Filter>> ILayer.Connections => null;
 
     }

@@ -8,7 +8,7 @@ namespace CNN.Core.Filters
 {
     public class Convolution : Filter
     {
-        public Convolution(int? id, int size, int stride)
-            : base(id, size, stride) { }
+        public Convolution(int? id, int size, int stride, double stdev, double scale)
+            : base(id, size, stride, stdev, scale) { }
     }
 }

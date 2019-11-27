@@ -6,6 +6,5 @@
 /home/ugot/Documents/Projects/papers /vSLAM/code/vSLAM/NN/obj/x86/Debug/NN.csprojAssemblyReference.cache
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/NN/bin/Debug/NN.exe
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/NN/bin/Debug/NN.pdb
-/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/NN/obj/x86/Debug/NN.csproj.CoreCompileInputs.cache
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/NN/obj/x86/Debug/NN.exe
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/NN/obj/x86/Debug/NN.pdb

@@ -57,12 +57,16 @@ namespace CNN.Core
             if (aCols != bRows)
                 throw new Exception("Non-conformable matrices in MatrixProduct");
 
-            Filter result = new Filter(null, aRows, 1);
-
+            Filter result = new Filter(null, aRows, 1,1, 1);
             for (int i = 0; i < aRows; ++i) // each row of A
                 for (int j = 0; j < bCols; ++j) // each col of B
-                    for (int k = 0; k < aCols; ++k) // could use k < bRows
-                        result.value[i][j].Value += matrixA.value[i][k].Value * matrixB.value[k][j].Value;
+                        result.value[i][j].Value = 0;
+
+            for (int i = 0; i < aRows; ++i) // each row of A
+                for (int j = 0; j < bCols; ++j)
+                {
+                    result.value[i][j].Value = matrixA.value[i][j].Value * matrixB.value[i][j].Value;
+                }
 
             return result;
         }
@@ -194,13 +198,46 @@ namespace CNN.Core
             return feature_maps;
         }
 
-        public double RandomGaussian(double mean, double stdDev)
+        public double RandomGaussian(double mean, double stdDev, double scale)
         {
             double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
             double u2 = 1.0 - rand.NextDouble();
             double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
             double randNormal = mean + stdDev * randStdNormal;
-            return randNormal;
+            return randNormal * scale;
         }
+
+        public double RandomStandard(double mean, double stdDev, double scale)
+        {
+            double u1 = 1.0 - rand.NextDouble(); //uniform(0,1] random doubles
+            double u2 = 1.0 - rand.NextDouble();
+            double randStdNormal = Math.Sqrt(-2.0 * Math.Log(u1)) * Math.Sin(2.0 * Math.PI * u2); //random normal(0,1)
+            return randStdNormal * scale;
+        }
+
+        public List<List<double[][]>> Shuffle(List<double[][]> list1, List<double[][]> list2)
+        {
+            if (list1.Count != list2.Count)
+                throw new Exception("List count must be the same");
+
+            List<List<double[][]>> result = new List<List<double[][]>>();
+            int n = list1.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rand.Next(n + 1);
+                double[][] value = list1[k];
+                list1[k] = list1[n];
+                list1[n] = value;
+                double[][] value2 = list2[k];
+                list2[k] = list2[n];
+                list2[n] = value2;
+            }
+            result.Add(list1);
+            result.Add(list2);
+            return result;
+
+        }
+
     }
 }

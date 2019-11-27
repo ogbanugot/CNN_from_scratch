@@ -87,7 +87,7 @@ namespace CNN.Core
                         //We connect n filters to output o
                         for (int j = 0; j < number_of_filters; j++)
                         {
-                            k = Filter.Build(cfg[0], j, size, stride);
+                            k = Filter.Build(cfg[0], j, size, stride,1, 0.01);
                             w = new fMap(fmapsize, fmapsize);
                             k.Source = w;
                             k.Target = o;
@@ -120,7 +120,7 @@ namespace CNN.Core
                         for (int j = 0; j < number_of_filters; j++)
                         {
                             //we connect n filters (W) with n inputs (x) to a single output o
-                            k = Filter.Build(cfg[0], j, size, stride);
+                            k = Filter.Build(cfg[0], j, size, stride,1, 0.01);
                             k.Source = input.fMaps[j];
                             k.Target = o;
                             k.Activation = activation;
@@ -144,7 +144,7 @@ namespace CNN.Core
                         Filter k;
                         fMap w = null;
                         w = new fMap(fmapsize, fmapsize);
-                        k = Filter.Build(cfg[0], i, size, stride);
+                        k = Filter.Build(cfg[0], i, size, stride, 0.07071067811865475, 1);
                         //Source  feature map is input image
                         k.Source = input.fMaps[0];
                         k.Target = w;
@@ -155,7 +155,7 @@ namespace CNN.Core
                         }
                     }
 
-                    if (number_of_fmaps == 3)
+                    else if (number_of_fmaps == 3)
                     {
                     //3 channel image (RGB)
                     for (int i = 0; i < depth; i++)
@@ -165,7 +165,7 @@ namespace CNN.Core
                             Filter k;
                             fMap w = null;
                             w = new fMap(fmapsize, fmapsize);
-                            k = Filter.Build(cfg[0], j, size, stride);
+                            k = Filter.Build(cfg[0], j, size, stride, 0.07071067811865475, 1);
                             //Source  feature map is input image
                             k.Source = input.fMaps[j];
                             k.Target = w;
@@ -177,7 +177,7 @@ namespace CNN.Core
                     }
                     }
 
-                    else
+                    else if(number_of_fmaps >3)
                     {
                     //source feature map is from previous conv or pool layer
                     for (int i = 0; i < depth; i++)
@@ -187,7 +187,7 @@ namespace CNN.Core
                             Filter k;
                             fMap w = null;
                             w = new fMap(fmapsize, fmapsize);
-                            k = Filter.Build(cfg[0], i, size, stride);
+                            k = Filter.Build(cfg[0], i, size, stride, 0.025, 1);
                             k.Source = input.fMaps[index];
                             k.Target = w;
                             k.bias.SetValue(bias, 0);

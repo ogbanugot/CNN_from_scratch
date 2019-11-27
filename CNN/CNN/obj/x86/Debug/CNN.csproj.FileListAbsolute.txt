@@ -25,7 +25,6 @@ C:/Users/Ugot/Documents/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CopyComplete
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/NN.exe
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/bin/Debug/NN.pdb
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csprojAssemblyReference.cache
-/home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CoreCompileInputs.cache
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.csproj.CopyComplete
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.exe
 /home/ugot/Documents/Projects/papers/vSLAM/code/vSLAM/CNN/obj/x86/Debug/CNN.pdb

@@ -8,8 +8,9 @@ namespace CNN.Core
 {
     public class Model
     {
+        private string formattingString = "0.0";
         protected ILayer[] cnn;
-        
+        double cost;
         public Model() { }
 
         public Model Configure(string configStr, ILayer input)
@@ -23,128 +24,123 @@ namespace CNN.Core
 
             for (int i = 0; i < n - 1; i++)
                 cnn[i + 1] = new Layer().Configure(cfg[i], cnn[i]);
-            //comment
-            Console.WriteLine("Configuration complete.");
-
+            ////comment
+            //Console.WriteLine("Configuration complete.");
+            //string g3 = ToGString();
+            //System.IO.File.WriteAllText("/home/ugot/mnist/gstring", g3);
+            //string g5 = ToGradientStoreString();
+            //System.IO.File.WriteAllText("/home/ugot/mnist/grdstring", g5);
             return this;
         }
 
 
-        public Model Forward()
+        public Model Forward(double[][] image)
         {
             int n = cnn.Length;
-            for (int i=1; i<n; i++)
+            for (int i=0; i<n; i++)
             {
-                int size = cnn[i].filters.Count;
-                int no = 0;
-
-                if (cnn[i].filters[0].GetType() == typeof(Filters.Connection))
+                //Image layer add image values 
+                if (i == 0)
                 {
-                    //Connection layer
-                    for(int l=0; l< cnn[i].Connections.Count; l++)
-                    {
-                        no++;
-                        double sum = 0;
-                        for (int m = 0; m < cnn[i].Connections.Count; m++)
+                    if (cnn[i].fMaps[0].value.Count() != image.Count())
+                        throw new Exception("Image size mismatch");
+
+                    for(int l=0; l<cnn[i].fMaps[0].value.Count(); l++)
+                        for (int m=0; m<image[0].Count(); m++)
                         {
-                            IList<Filter> flt = new List<Filter>();
-                            var val = cnn[i].Connections[l][m].value[0][0].Value * cnn[i].Connections[l][m].Source.value[0][0].Value;
-                            sum += val;
-                        }            
-                        Actfunc actfunc = new Actfunc();
-                        double induced_field = sum + cnn[i].fMaps[l].Bias[0];
-                        cnn[i].fMaps[l].InducedField[0][0] = induced_field;
-                        double relu_output;
-                        switch (cnn[i].Connections[0][0].Activation)
-                        {
-                            case "relu":
-                                relu_output = actfunc.ReLu(induced_field);
-                                cnn[i].fMaps[l].value[0][0].Value = relu_output;
-                                
-                                break;                      
+                            cnn[i].fMaps[0].value[l][m].Value = image[l][m];
+                            
                         }
-                    }
-                    if (cnn[i].filters[0].Activation == "softmax")
-                    {
-                        List<double> output = new List<double>();
-                        for (int s=0; s<cnn[i].fMaps.Count; s++)
-                        {
-                            output.Add(cnn[i].fMaps[s].InducedField[0][0]);
-                        }
-                        Actfunc actfunc = new Actfunc();
-                      
-                        var probabilites =  actfunc.Softmax(output);
-                        for (int s = 0; s < cnn[i].fMaps.Count; s++)
-                        {
-                            cnn[i].fMaps[s].value[0][0].Value = probabilites[s];
-                        }
-                    }
                 }
                 else
                 {
-                    //Convolution or pooling layer
-                    for (int j = 0; j < size; j++)
+                    if (cnn[i].filters[0].GetType() == typeof(Filters.Connection))
                     {
-                        Filter k = cnn[i].filters[j].forward();
-                    }
-                    if ((cnn[i].filters[0].GetType()==typeof(Filters.Maxpool)) && cnn[i + 1].filters[0].GetType()==typeof(Filters.Connection))
-                    {
-                        if ((cnn[i].fMaps.Count * cnn[i].fMaps[0].Size * cnn[i].fMaps[0].Size) != cnn[i + 1].Connections[0].Count)
+                        //Connection layer
+                        for (int l = 0; l < cnn[i].Connections.Count; l++)
                         {
-                            throw new Exception("Flatten dimension mismatch");
-                        }
-
-                        Linalg linalg = new Linalg();
-                        IList<IList<fMap>> feature_maps = new List<IList<fMap>>();
-                        for (int l = 0; l < cnn[i].fMaps.Count; l++)
-                        {
-                            Console.WriteLine("Flattening...");
-                            feature_maps.Add(linalg.Flatten(cnn[i].fMaps[l]));
-                        }
-                        for (int t = 0; t < cnn[i + 1].Connections.Count; t++)
-                        {
-                            int count = 0;
-                            for (int m = 0; m < feature_maps.Count; m++)
+                            double sum = 0;
+                            for (int m = 0; m < cnn[i].Connections[0].Count; m++)
                             {
-                                for (int h = 0; h < feature_maps[0].Count; h++)
-                                {
-                                    IList<Filter> flt = new List<Filter>();
-                                    flt = cnn[i + 1].Connections[t];
-                                    flt[count].Source = feature_maps[m][h];
-                                    count++;
-                                }
+                                var val = cnn[i].Connections[l][m].value[0][0].Value * cnn[i].Connections[l][m].Source.value[0][0].Value;
+                                sum += val;
+                            }
+                            Actfunc actfunc = new Actfunc();
+                            double induced_field = sum + cnn[i].fMaps[l].Bias[0];
+                            cnn[i].fMaps[l].InducedField[0][0] = induced_field;
+                            double relu_output;
+                            switch (cnn[i].Connections[0][0].Activation)
+                            {
+                                case "relu":
+                                    relu_output = actfunc.ReLu(induced_field);
+                                    cnn[i].fMaps[l].value[0][0].Value = relu_output;
 
+                                    break;
+                            }
+                        }
+                        if (cnn[i].filters[0].Activation == "softmax")
+                        {
+                            List<double> output = new List<double>();
+                            for (int s = 0; s < cnn[i].fMaps.Count; s++)
+                            {
+                                output.Add(cnn[i].fMaps[s].InducedField[0][0]);
+                            }
+                            Actfunc actfunc = new Actfunc();
+
+                            var probabilites = actfunc.Softmax(output);
+                            for (int s = 0; s < cnn[i].fMaps.Count; s++)
+                            {
+                                cnn[i].fMaps[s].value[0][0].Value = probabilites[s];
                             }
                         }
                     }
+                    else
+                    {
+                        int size = cnn[i].filters.Count;
+                        //Convolution or pooling layer
+                        for (int j = 0; j < size; j++)
+                        {
+                            Filter k = cnn[i].filters[j].forward();
+                        }
+                        if ((cnn[i].filters[0].GetType() == typeof(Filters.Maxpool)) && cnn[i + 1].filters[0].GetType() == typeof(Filters.Connection))
+                        {
+                            if ((cnn[i].fMaps.Count * cnn[i].fMaps[0].Size * cnn[i].fMaps[0].Size) != cnn[i + 1].Connections[0].Count)
+                            {
+                                throw new Exception("Flatten dimension mismatch");
+                            }
+
+                            Linalg linalg = new Linalg();
+                            IList<IList<fMap>> feature_maps = new List<IList<fMap>>();
+                            for (int l = 0; l < cnn[i].fMaps.Count; l++)
+                            {
+                                feature_maps.Add(linalg.Flatten(cnn[i].fMaps[l]));
+                            }
+                            for (int t = 0; t < cnn[i + 1].Connections.Count; t++)
+                            {
+                                int count = 0;
+                                for (int m = 0; m < feature_maps.Count; m++)
+                                {
+                                    for (int h = 0; h < feature_maps[0].Count; h++)
+                                    {
+
+                                        cnn[i + 1].Connections[t][count].Source = feature_maps[m][h];
+                                        count++;
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+
+
                 }
-
-            }
-            //Console.WriteLine("\n");
-            //Console.WriteLine(cnn[4].fMaps[0].InducedField[0][0]);
-            //Console.WriteLine(cnn[4].fMaps[1].InducedField[0][0]);
-            //Console.WriteLine(cnn[4].fMaps[2].InducedField[0][0]);
-            //Console.WriteLine("\n");
-            Console.WriteLine("Output layer");
-            Console.WriteLine(cnn[5].fMaps[0].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[1].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[2].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[3].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[4].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[5].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[6].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[7].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[8].value[0][0].Value);
-            Console.WriteLine(cnn[5].fMaps[9].value[0][0].Value);
-            Console.WriteLine("\n\n");
-
+                }
             return this;
         }
 
-        public Model Backward(double []label)
+        public Model Backward(double [][]label)
         {
-            Console.WriteLine("\n\n");
-            Console.WriteLine("backprop");
+
             int n = cnn.Length;
             for (int i = n-1; i >= 1; i--)
             {
@@ -153,14 +149,15 @@ namespace CNN.Core
                 //output layer
                 if (i==n-1 && cnn[i].filters[0].GetType() == typeof(Filters.Connection))
                 {
-                    Console.WriteLine("output layer");
                     //for each fmap
                     for (int j=0; j<cnn[i].fMaps.Count; j++)
                     {
                         //dout = prob - label
-                        cnn[i].fMaps[j].Gradient[0][0] = cnn[i].fMaps[j].value[0][0].Value - label[j];
+                        cnn[i].fMaps[j].Gradient[0][0] = cnn[i].fMaps[j].value[0][0].Value - label[0][j];
                         //bias = dout
                         cnn[i].fMaps[j].Bias[1] = cnn[i].fMaps[j].Gradient[0][0];
+                        cnn[i].fMaps[j].Bias[2] += cnn[i].fMaps[j].Gradient[0][0];
+
                     }
                     //derivative of weights
                     //for all connections
@@ -171,6 +168,8 @@ namespace CNN.Core
                         {
                             //dw = previous_layer_output * gradient__of_current_layer_output
                             cnn[i].Connections[h][m].Gradient[0][0] = cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+                            cnn[i].Connections[h][m].GradientStorage[0][0] += cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+
                         }
                     }
 
@@ -178,7 +177,6 @@ namespace CNN.Core
 
                 if((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Connection)))
                 {
-                    Console.WriteLine("hidden layer");
                     //hidden layer
                     Actfunc actfunc = new Actfunc();
                     double function_derivative = 0;
@@ -190,7 +188,7 @@ namespace CNN.Core
                         switch (cnn[i].filters[i].Activation)
                         {
                             case "relu":
-                                function_derivative = actfunc.DReLuConn(cnn[i].fMaps[i].InducedField[0][0]);
+                                function_derivative = actfunc.DReLuConn(cnn[i].fMaps[j].InducedField[0][0]);
                                 break;
                         }
                         //for each fmap in proceeding layer
@@ -202,6 +200,8 @@ namespace CNN.Core
                         cnn[i].fMaps[j].Gradient[0][0] = sum * function_derivative;
                         //bias
                         cnn[i].fMaps[j].Bias[1] = cnn[i].fMaps[j].Gradient[0][0];
+                        cnn[i].fMaps[j].Bias[2] += cnn[i].fMaps[j].Gradient[0][0];
+
 
                     }
 
@@ -214,13 +214,14 @@ namespace CNN.Core
                         {
                             //dw = previous_layer_output (source) * gradient__of_current_layer_output
                             cnn[i].Connections[h][m].Gradient[0][0] = cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+                            cnn[i].Connections[h][m].GradientStorage[0][0] += cnn[i].Connections[h][m].Source.value[0][0].Value * cnn[i].fMaps[h].Gradient[0][0];
+
                         }
                     }
                 }
 
                 if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Maxpool)) && (cnn[i+1].filters[0].GetType() == typeof(Filters.Connection)))
                 {
-                    Console.WriteLine("pool layer");
                     // derivative of Pooled layer
                     double sum =0;
                     int number_of_fmaps = cnn[i].fMaps.Count;
@@ -255,20 +256,18 @@ namespace CNN.Core
                 if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Convolution)) && (cnn[i + 1].filters[0].GetType() == typeof(Filters.Maxpool)))
                 {
                     //maxpool to convolution backprop
-                    Console.WriteLine("convolution layer");
                     for (int j=0; j<cnn[i].fMaps.Count; j++)
                     {
-                        cnn[i].filters[j].Maxbackward(cnn[i + 1].fMaps[j], cnn[i+1].filters[i].Stride);
+                        cnn[i].filters[j].Maxbackward(cnn[i + 1].fMaps[j], cnn[i+1].filters[j].Stride);
                     }
                 }
 
                 if ((i != n - 1) && (cnn[i].filters[0].GetType() == typeof(Filters.Convolution)) && (cnn[i + 1].filters[0].GetType() == typeof(Filters.Convolution)))
                 {
                     //convolution to convolution backprop
-                    Console.WriteLine("convolution layer");
                     for (int j = 0; j < cnn[i+1].fMaps.Count; j++)
                     {
-                        cnn[i].filters[j].Backward(cnn[i+1].fMaps[j], cnn[i].filters[i].Activation);
+                        cnn[i].filters[j].Backward(cnn[i+1].fMaps[j], cnn[i].filters[j].Activation);
 
                     }
                 }
@@ -278,26 +277,266 @@ namespace CNN.Core
             return this;
         }
 
-        public int[] train(int num_of_classes, int lr, int beta1, int beta2, int batch_size, int num_epochs)
-        {        
+        public Model Train(List<List<double[][]>> dataset, double lr, double beta1, double beta2, int batch_size, int num_epochs)
+        {
             //training loop
-            //model = Model.forward(params)
-            //gradients = Model.backward(model)
-            //loss = Loss.categoricalCrossEntropy(model.output, labels)
-            //parameters, cost = optimizer.adamGD(gradients, loss)
-            //return optimized parameters and cost
-            return null;
+            //for each epoch
+            //create batches from dataset (randomize other, perhaps)
+            //For each batch in batches
+            //Initialize AdamGD(pass model, and batch to it with other params)
+            //display most recent cost from Adam
+            List<List<double[][]>> batch_image = new List<List<double[][]>>();
+            List<List<double[][]>> batch_label = new List<List<double[][]>>();
+            Console.WriteLine("Preparing batches....");
+            int index = 0;
+            while (index < dataset[0].Count)
+            {
+                int count = dataset[0].Count - index > batch_size ? batch_size : dataset[0].Count - index;
+                batch_image.Add(dataset[0].GetRange(index, count));
+                batch_label.Add(dataset[1].GetRange(index, count));
+                index += batch_size;
+            }
+        Console.WriteLine("Done preparing batches, starting training loop....");
+            //Initialize Optimizer
+            Optimizer optimizer = new Optimizer();
+            List<double> costHistory = new List<double>();
+            //training loop
+        for(int epoch=0; epoch<num_epochs; epoch++)
+            {
+                //Take it batch by batch
+                for(int i=0; i<batch_image.Count(); i++)
+                {
+                   optimizer.AdamGD(batch_image[i], batch_label[i], this, lr, beta1, beta2, batch_size);
+                   Console.WriteLine("Epoch {0}/Batch {1}: Loss: {2}", epoch, i, cost);
+                }
+            }
+            costHistory.Add(cost);
+            return this;
         }
 
-        public int [] predict()
+        public int[] predict()
         {
             //Make predictions with trained filters and weights
             return null;
         }
 
+        public override string ToString()
+        {
+            string s = "";
+            int n = cnn.Length;
+            for (int i=0; i<n; i++)
+            {
+                if (i == 0)
+                {
+                    s += "\nImage Layer[" + i.ToString(formattingString) + "]\n";
+                    s += "\nFmap\n";
+                    s += cnn[i].fMaps[0].ToString();
+                
+                }
+                else
+                {
+                    if (cnn[i].filters[0].GetType() == typeof(Filters.Connection))
+                    {
+                        //Connection layer
+                        s += "\n\n";
+                        s += "\nConnected layer[" + i.ToString(formattingString) + "]\n";
+                        for (int l = 0; l < cnn[i].Connections.Count; l++)
+                        {
+                            s += "\nFmap [" + l.ToString(formattingString) + "]\n";
+                            s += cnn[i].fMaps[l].ToString();
+                            s += "\n";
+                            s += "\nConnections[" + l.ToString(formattingString) + "]\n";
+                            for (int m = 0; m < cnn[i].Connections[0].Count; m++)
+                            {
+                                s += "\n";
+                                s += cnn[i].Connections[l][m].ToString();
+                                s += "\nConnection_Fmap[" + l.ToString(formattingString) + "]";
+                                s += cnn[i].Connections[l][m].Source.ToString();
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int size = cnn[i].filters.Count;
+                        //Convolution or pooling layer
+                        if (cnn[i].filters[0].GetType() == typeof(Filters.Maxpool))
+                        {
+                            s += "\n\n";
+                            s += "\nPooling layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToString();
+                            }
+                        }
+                        else
+                        {
+                            s += "\n\n";
+                            s += "\nConvolution layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToString();
+                            }
+                        }
+                    }
+                }
+            }
+            return s;
+        }
+
+        public string ToGString()
+        {
+            string s = "";
+            int n = cnn.Length;
+            for (int i = 0; i < n; i++)
+            {
+                if (i == 0)
+                {
+                    s += "\nImage Layer[" + i.ToString(formattingString) + "]\n";
+                    s += "\nFmap\n";
+                    s += cnn[i].fMaps[0].ToString();
+
+                }
+                else
+                {
+                    if (cnn[i].filters[0].GetType() == typeof(Filters.Connection))
+                    {
+                        //Connection layer
+                        s += "\n\n";
+                        s += "\nConnected layer[" + i.ToString(formattingString) + "]\n";
+                        for (int l = 0; l < cnn[i].Connections.Count; l++)
+                        {
+                            s += "\nFmap [" + l.ToString(formattingString) + "]\n";
+                            s += cnn[i].fMaps[l].ToGString();
+                            s += "\n";
+                            s += "\nConnections[" + l.ToString(formattingString) + "]\n";
+                            for (int m = 0; m < cnn[i].Connections[0].Count; m++)
+                            {
+                                s += cnn[i].Connections[l][m].ToGString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int size = cnn[i].filters.Count;
+                        //Convolution or pooling layer
+                        if (cnn[i].filters[0].GetType() == typeof(Filters.Maxpool))
+                        {
+                            s += "\n\n";
+                            s += "\nPooling layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToGString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToGString();
+                            }
+                        }
+                        else
+                        {
+                            s += "\n\n";
+                            s += "\nConvolution layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToGString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToGString();
+                            }
+                        }
+                    }
+                }
+            }
+            return s;
+        }
+
+        public string ToGradientStoreString()
+        {
+            string s = "";
+            int n = cnn.Length;
+            for (int i = 0; i < n; i++)
+            {
+                if (i == 0)
+                {
+                    s += "\nImage Layer[" + i.ToString(formattingString) + "]\n";
+                    s += "\nFmap\n";
+                    s += cnn[i].fMaps[0].ToString();
+
+                }
+                else
+                {
+                    if (cnn[i].filters[0].GetType() == typeof(Filters.Connection))
+                    {
+                        //Connection layer
+                        s += "\n\n";
+                        s += "\nConnected layer[" + i.ToString(formattingString) + "]\n";
+                        for (int l = 0; l < cnn[i].Connections.Count; l++)
+                        {
+                            s += "\nFmap [" + l.ToString(formattingString) + "]\n";
+                            s += cnn[i].fMaps[l].ToGString();
+                            s += "\n";
+                            s += "\nConnections[" + l.ToString(formattingString) + "]\n";
+                            for (int m = 0; m < cnn[i].Connections[0].Count; m++)
+                            {
+                                s += cnn[i].Connections[l][m].ToGradientStoreString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        int size = cnn[i].filters.Count;
+                        //Convolution or pooling layer
+                        if (cnn[i].filters[0].GetType() == typeof(Filters.Maxpool))
+                        {
+                            s += "\n\n";
+                            s += "\nPooling layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToGString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToGradientStoreString();
+                            }
+                        }
+                        else
+                        {
+                            s += "\n\n";
+                            s += "\nConvolution layer[" + i.ToString(formattingString) + "]\n";
+                            for (int j = 0; j < size; j++)
+                            {
+                                s += "\nFmap [" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].fMaps[j].ToGString();
+                                s += "\n";
+                                s += "\nFilter[" + j.ToString(formattingString) + "]\n";
+                                s += cnn[i].filters[j].ToGradientStoreString();
+                            }
+                        }
+                    }
+                }
+            }
+            return s;
+        }
+
         public ILayer[] Layer
         {
             get { return cnn;}
+        }
+
+        public double Cost
+        {
+            get { return cost; }
+            set { cost = value; }
         }
     }
 }

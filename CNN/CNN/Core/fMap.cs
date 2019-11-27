@@ -16,7 +16,8 @@ namespace CNN.Core
         private int size;
         protected double[][] gradient;
         protected double[][] induced_field;
-        protected double []bias = new double[2];
+        protected double []bias = new double[3];
+        private string formattingString = "0.000000000000";
 
         public fMap(int rows, int cols)
         {
@@ -27,7 +28,7 @@ namespace CNN.Core
             for (int i = 0; i < rows; i++)
                 for (int j = 0; j < cols; j++)
                 {
-                    m[i][j] = new Node<double>(linalg.RandomGaussian(0, 0.0047855339));
+                    m[i][j] = new Node<double>(linalg.RandomGaussian(0, 1, 1));
                 }
 
             //gradient
@@ -51,11 +52,7 @@ namespace CNN.Core
 
         public fMap Initialize(string path)
         {
-            // todo
-            //switch (filetype)
-            //{
 
-            //}
             return Initialize();
         }
 
@@ -90,6 +87,37 @@ namespace CNN.Core
                 gradient = value;
             }
         }
+
+        public override string ToString()
+        {
+            string s = "";
+
+            for (int i = 0; i < size; i++)
+            {
+                s += "\n";
+
+                for (int j = 0; j < size; j++)
+                    s += m[i][j].Value.ToString(formattingString) + " ";
+            }
+
+            return s;
+        }
+
+        public string ToGString()
+        {
+            string s = "";
+
+            for (int i = 0; i < size; i++)
+            {
+                s += "\n";
+
+                for (int j = 0; j < size; j++)
+                    s += gradient[i][j].ToString(formattingString) + " ";
+            }
+
+            return s;
+        }
+
 
         public double[][] InducedField
         {

@@ -17,13 +17,16 @@ namespace CNN.Core
         protected fMap src;
         protected fMap trg;
         protected fMap trgIF;
-        protected double[] b = new double[2];
+        protected double[] b = new double[3];
         protected double[][] gradient;
+        protected double[][] gradientStorage;
         protected string activation;
+        private string formattingString = "0.000000000000";
 
 
 
-        public Filter(int? id, int size, int stride)
+
+        public Filter(int? id, int size, int stride, double stdev, double scale)
         {
             this.id = id; this.size = size; this.stride = stride;
 
@@ -34,7 +37,7 @@ namespace CNN.Core
             {
                 for (int j = 0; j < size; j++)
                 {
-                    m[i][j] = new Node<double>(linalg.RandomGaussian(0, 0.0047855339));
+                    m[i][j] = new Node<double>(linalg.RandomStandard(0, stdev, scale));
                 }
 
             }
@@ -47,6 +50,14 @@ namespace CNN.Core
                 for (int j = 0; j < size; j++)
                     gradient[i][j] = 0;
 
+            gradientStorage = new double[size][];
+            for (int i = 0; i < size; i++)
+                gradientStorage[i] = new double[size];
+
+            for (int i = 0; i < size; i++)
+                for (int j = 0; j < size; j++)
+                    gradientStorage[i][j] = 0;
+
         }
 
         /// <summary>
@@ -57,7 +68,7 @@ namespace CNN.Core
 
         }
 
-        public static Filter Build(string type, int? id, int size, int stride)
+        public static Filter Build(string type, int? id, int size, int stride, double stdev, double scale)
         {
             Filter k = null;
 
@@ -65,19 +76,23 @@ namespace CNN.Core
             {
                 case "conn":
                 case "Connection":
-                    k = new Filters.Connection(id, size, stride);
+                    k = new Filters.Connection(id, size, stride, stdev=1, scale);
                     break;
                 case "conv":
                 case "Convolution":
-                    k = new Filters.Convolution(id, size, stride);
+                    k = new Filters.Convolution(id, size, stride, stdev, scale);
+                    break;
+                case "img":
+                case "image":
+                    k = new Filters.Connection(id, size, stride, stdev=1, scale);
                     break;
                 case "pool":
                 case "Maxpool":
-                    k = new Filters.Maxpool(id, size, stride);
+                    k = new Filters.Maxpool(id, size, stride, stdev=1, scale);
                     break;
                 case "relu":
                 case "Relu":
-                    k = new Filters.Relu(id, size, stride);
+                    k = new Filters.Relu(id, size, stride, stdev, scale);
                     break;
                 default:
                     throw new Exception();
@@ -102,14 +117,14 @@ namespace CNN.Core
                     while (curr_x + f <= in_dim)
                     {
                         //Create a new 5x5 matrix slice from source feature map
-                        Filter slice = new Filter(null, f, s);
+                        Filter slice = new Filter(null, f, s,1,1);
                         var index_y = curr_y;
                         for (int i = 0; i < f; i++)
                         {
                             var index_x = curr_x;
                             for (int j = 0; j < f; j++)
                             {
-                                slice.value[i][j] = this.src.value[index_y][index_x];
+                                slice.value[i][j] = src.value[index_y][index_x];
                                 index_x++;
                             }
                             index_y++;
@@ -151,14 +166,14 @@ namespace CNN.Core
                     while (curr_x + f <= in_dim)
                     {
                         //Create a new 5x5 matrix slice from source feature map
-                        Filter slice = new Filter(null, f, s);
+                        Filter slice = new Filter(null, f, s, 1, 1);
                         var index_y = curr_y;
                         for (int i = 0; i < f; i++)
                         {
                             var index_x = curr_x;
                             for (int j = 0; j < f; j++)
                             {
-                                slice.value[i][j] = this.src.value[index_y][index_x];
+                                slice.value[i][j] = src.value[index_y][index_x];
                                 index_x++;
                             }
                             index_y++;
@@ -234,7 +249,7 @@ namespace CNN.Core
                 while (curr_x + f <= in_dim)
                 {
                     //Create a new 5x5 matrix slice from source feature map
-                    Filter slice = new Filter(null, f, s);
+                    Filter slice = new Filter(null, f, s, 1,1);
                     var index_y = curr_y;
                     for (int i = 0; i < f; i++)
                     {
@@ -261,10 +276,12 @@ namespace CNN.Core
                 for (int j = 0; j < f; j++)
                 {
                     this.Gradient[i][j] = sum[i][j];
+                    this.GradientStorage[i][j] += sum[i][j];
                 }
             }
             //gradient of bias
             bias[1] = linalg.DoubleSum(trg.Gradient);
+            bias[2] += linalg.DoubleSum(trg.Gradient);
             return this;
         }
 
@@ -284,7 +301,7 @@ namespace CNN.Core
                 int curr_cx = 0, out_cx = 0;
                 while (curr_cx + f <= pin_dim)
                 {
-                    Filter slice = new Filter(null, f, s);
+                    Filter slice = new Filter(null, f, s, 1, 1);
 
                     var index_cy = curr_cy;
                     for (int i = 0; i < f; i++)
@@ -316,7 +333,7 @@ namespace CNN.Core
                 while (curr_x + f <= in_dim)
                 {
                     //Create a new 5x5 matrix slice from source feature map
-                    Filter slice = new Filter(null, f, s);
+                    Filter slice = new Filter(null, f, s, 1, 1);
                     var index_y = curr_y;
                     for (int i = 0; i < f; i++)
                     {
@@ -343,11 +360,13 @@ namespace CNN.Core
                 for (int j = 0; j < f; j++)
                 {
                     this.Gradient[i][j] = sum[i][j];
+                    this.GradientStorage[i][j] += sum[i][j];
                 }
             }
             //gradient of bias
             bias[1] = linalg.DoubleSum(trg.Gradient);
-
+            //store gradient
+            bias[2] += linalg.DoubleSum(trg.Gradient);
             return this;
         }
 
@@ -396,6 +415,70 @@ namespace CNN.Core
             }
         }
 
+        public double[][] GradientStorage
+        {
+            get { return gradientStorage; }
+
+            set
+            {
+                gradientStorage = value;
+            }
+        }
+
+        public double GradientStorageReset
+        {
+            set
+            {
+                for (int i = 0; i < size; i++)
+                    for (int j = 0; j < size; j++)
+                        gradientStorage[i][j] = value;
+            }
+        }
+
+        public override string ToString()
+        {
+            string s = "";
+
+            for (int i = 0; i < size; i++)
+            {
+                s += "\n";
+
+                for (int j = 0; j < size; j++)
+                    s += m[i][j].Value.ToString(formattingString) + " ";
+            }
+
+            return s;
+        }
+
+        public string ToGString()
+        {
+            string s = "";
+
+            for (int i = 0; i < size; i++)
+            {
+                s += "\n";
+
+                for (int j = 0; j < size; j++)
+                    s += gradient[i][j].ToString(formattingString) + " ";
+            }
+
+            return s;
+        }
+
+        public string ToGradientStoreString()
+        {
+            string s = "";
+
+            for (int i = 0; i < size; i++)
+            {
+                s += "\n";
+
+                for (int j = 0; j < size; j++)
+                    s += gradientStorage[i][j].ToString(formattingString) + " ";
+            }
+
+            return s;
+        }
         public double[] bias
         {
             get { return b; }
